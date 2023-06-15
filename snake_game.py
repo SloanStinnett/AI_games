@@ -30,6 +30,10 @@ class Direction(Enum):
     UP = 3
     DOWN = 4
 
+class Action(Enum):
+    STRAIGHT = 1
+    RIGHT = 2
+    LEFT = 3
 
 class SnakeGame:
     ''' class containing the behavior of the snake game'''
@@ -40,6 +44,9 @@ class SnakeGame:
         self.display = pyg.display.set_mode((self.width,self.height))
         self.clock = pyg.time.Clock()
 
+        self.reset_gamestate()
+    
+    def reset_gamestate(self):
         self.direction = Direction.UP
         self.head = Point(self.width/2,self.height/2)
         self.snake = [self.head,
@@ -48,8 +55,10 @@ class SnakeGame:
         
         self.score = 0
         self.food = []
+        self.turns_hungary = 0
+
         self.place_food()
-    
+
     def create_food(self)->tuple[Point,int]:
         ''' generate the location and the type of the food'''
         x = rand.randint(0,(self.width-BLOCK_SIZE)//BLOCK_SIZE)*BLOCK_SIZE
@@ -84,7 +93,49 @@ class SnakeGame:
             elif t == 1:
                 self.food.append(Crab(loc))
 
-    def play_step(self)-> tuple[bool,int]:
+    def get_direction_from_action(self)->int:
+        
+        
+    
+    def play_step_AI_train(self,action:int)->tuple[int,bool,int]:
+        ''' Basic Game Loop Step for AI-training'''
+        self.direction = self.get_direction_from_action(action)
+        # move
+        self.move(self.direction)
+        self.snake.insert(0,self.head)
+       
+        # check if the game is over 
+        game_over:bool = False
+        if self.collide_self or self.turns_hungary > 50*len(self.snake):
+            game_over = True
+        
+        # place new food and increase length or just maintain length
+        ate_this_round:bool = False
+        reward = 0
+        for f in self.food:
+            if self.head == f.loc:
+                # log score improvement
+                self.score += f.value
+                reward += f.value
+                # handle food state
+                self.food.remove(f)
+                self.place_food()
+                # signal the snake ate 
+                ate_this_round = True
+                # reset turn counter
+                self.turns_hungary = 0
+        if ate_this_round == False: 
+                self.snake.pop()
+
+        # update ui and clock 
+        self.update_ui()
+        self.clock.tick(SPEED)
+        # return to the game over menu and show the score 
+
+        return reward, game_over, self.score
+
+
+    def play_step_player(self)-> tuple[bool,int]:
         ''' Basic Game Loop Step'''
         # collect user input 
         for event in pyg.event.get():
@@ -239,8 +290,10 @@ class Snail(SnakeFood):
 if __name__ == '__main__':
     game = SnakeGame()
 
+    #Retrieve action type: player,AI-train,AI-trial
+
     while True:
-        game_over,score = game.play_step()
+        game_over,score = game.play_step_player()
 
         #go to main menu and display score
         if game_over:

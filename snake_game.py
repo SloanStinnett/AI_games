@@ -93,7 +93,20 @@ class SnakeGame:
             elif t == 1:
                 self.food.append(Crab(loc))
 
-    def get_direction_from_action(self)->int:
+    def get_direction_from_action(self,action:Action)->int:
+        clock_wise_directions = [Direction.LEFT,Direction.UP,Direction.RIGHT,Direction.DOWN]
+
+        current_heading = clock_wise_directions.index(self.direction)
+
+        if action == Action.LEFT:
+            new_heading = (current_heading - 1)%4
+        elif action == Action.RIGHT:
+            new_heading = (current_heading + 1)%4
+
+        return new_heading
+
+            
+
         
         
     

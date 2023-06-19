@@ -54,6 +54,7 @@ class SnakeGame:
         self.reset_gamestate()
     
     def reset_gamestate(self):
+        ''' reset the game to its starting state'''
         self.direction = Direction.UP
         self.head = Point(self.width/2,self.height/2)
         self.snake = [self.head,
@@ -100,7 +101,8 @@ class SnakeGame:
             elif t == 1:
                 self.food.append(Crab(loc))
 
-    def get_direction_from_action(self,action:Action)->int:
+    def get_direction_from_action(self,action:Action)->Direction:
+        ''' convert actions available to learning agent into directions'''
         clock_wise_directions = [Direction.LEFT,Direction.UP,Direction.RIGHT,Direction.DOWN]
 
         current_heading = clock_wise_directions.index(self.direction)
@@ -275,16 +277,17 @@ class SnakeGame:
         print("Game Over")
     
     def game_start_screen(self)->GameType:
+        '''Display the start screen for the game'''
         self.display.fill(GREY)
         # generate player text 
         human_player_text = SMALL_FONT.render("Play with keyboard = q",True,WHITE)
-        human_player_text_rect = human_player_text.get_rect(center=(self.width/2,self.height/3))
+        human_player_text_rect = human_player_text.get_rect(center=(self.width/2,self.height/4))
         # generate AI play text
         AI_player_text = SMALL_FONT.render("Watch AI play = w",True,WHITE)
-        AI_player_text_rect = AI_player_text.get_rect(center=(self.width/2,(self.height/3) * 2))
+        AI_player_text_rect = AI_player_text.get_rect(center=(self.width/2,(self.height/4) * 2))
         # generate AI train text 
         AI_train_text = SMALL_FONT.render("Train AI = e",True,WHITE)
-        AI_train_text_rect = AI_train_text.get_rect(center=(self.width/2,(self.height/3) * 3))
+        AI_train_text_rect = AI_train_text.get_rect(center=(self.width/2,(self.height/4) * 3))
 
         #generate frame
         self.display.blit(human_player_text,human_player_text_rect)

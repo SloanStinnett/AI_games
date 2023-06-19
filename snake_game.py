@@ -35,6 +35,13 @@ class Action(Enum):
     RIGHT = 2
     LEFT = 3
 
+class GameType(Enum):
+    HUMAN_PLAYER = 1
+    AI_PLAYER = 2
+    AI_TRAIN = 3
+
+
+
 class SnakeGame:
     ''' class containing the behavior of the snake game'''
     def __init__(self, w:int = 400, h:int = 400):
@@ -104,11 +111,6 @@ class SnakeGame:
             new_heading = (current_heading + 1)%4
 
         return new_heading
-
-            
-
-        
-        
     
     def play_step_AI_train(self,action:int)->tuple[int,bool,int]:
         ''' Basic Game Loop Step for AI-training'''
@@ -147,14 +149,10 @@ class SnakeGame:
 
         return reward, game_over, self.score
 
-
     def play_step_player(self)-> tuple[bool,int]:
         ''' Basic Game Loop Step'''
         # collect user input 
         for event in pyg.event.get():
-            if event.type == pyg.QUIT:
-                pyg.quit()
-                quit()
             if event.type == pyg.KEYDOWN:
                 if event.key == pyg.K_LEFT:
                     self.direction = Direction.LEFT
@@ -272,6 +270,37 @@ class SnakeGame:
         pyg.display.flip()
 
         print("Game Over")
+    
+    def game_start_screen(self)->GameType:
+        self.display.fill(GREY)
+        # generate player text 
+        human_player_text = SMALL_FONT.render("Play with keyboard",True,WHITE)
+        human_player_text_rect = human_player_text.get_rect(center=(self.width/2,self.height/3))
+        # generate AI play text
+        AI_player_text = SMALL_FONT.render("Watch AI play",True,WHITE)
+        AI_player_text_rect = AI_player_text.get_rect(center=(self.width/2,(self.height/3) * 2))
+        # generate AI train text 
+        AI_train_text = SMALL_FONT.render("Train AI",True,WHITE)
+        AI_train_text_rect = AI_train_text.get_rect(center=(self.width/2,(self.height/3) * 3))
+
+        #generate frame
+        self.display.blit(human_player_text,human_player_text_rect)
+        self.display.blit(AI_player_text,AI_player_text_rect)
+        self.display.blit(AI_train_text,AI_train_text_rect)
+
+        # check input 
+        for event in pyg.event.get():
+            if event.type == pyg.KEYDOWN:
+                match event.key:
+                    case pyg.K_q:
+                        return GameType.HUMAN_PLAYER
+                    case pyg.K_w:
+                        return GameType.AI_PLAYER
+                    case pyg.K_e:
+                        return GameType.AI_TRAIN
+
+        
+        
 
 @dataclass
 class SnakeFood:
@@ -303,10 +332,26 @@ class Snail(SnakeFood):
 if __name__ == '__main__':
     game = SnakeGame()
 
+    #Show Start Screen 
+
+    game_type = game.game_start_screen()
+
+    match game_type:
+        case GameType.HUMAN_PLAYER:
+            play_step = game.play_step_player()
+        case GameType.AI_PLAYER:
+            play_step = game.play_step_AI_play()
+        case GameType.AI_TRAIN:
+            play_step = game.play_step_AI_train()
+
+
     #Retrieve action type: player,AI-train,AI-trial
 
     while True:
-        game_over,score = game.play_step_player()
+        if pyg.event.type == pyg.QUIT:
+                pyg.quit()
+                quit()
+        game_over,score = game.play_step()
 
         #go to main menu and display score
         if game_over:
